@@ -1,0 +1,26 @@
+[package]
+name = "axum-boilerplate"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.4"
+tokio = { version = "1.46.1", features = ["full"] }
+async-trait = "0.1.88"
+chrono = { version = "0.4.41", features = ["serde"] }
+tower = "0.4"
+hyper = "0.14"
+serde = { version = "1.0.219", features = ["derive"] }
+utoipa = { version = "5.3.1", features = ["actix_extras"] }
+sqlx = { version = "0.8.6", features = ["uuid", "postgres", "runtime-tokio", "tls-native-tls", "chrono"] }
+validator = { version = "0.20.0", features = ["derive"] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
+dotenv = "0.15.0"
+env_logger = "0.11.8"
+futures = "0.3.31"
+futures-util = "0.3.31"
+jsonwebtoken = "9.3.1"
+serde_json = "1.0.140"
+rust-argon2 = "3.0"
+
+
