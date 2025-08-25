@@ -5,26 +5,35 @@ use crate::{container::Container, features::{auth::{model::{LoginRequest, LoginR
 pub async fn login(
     State(container): State<Arc<Container>>,
     Json(req): Json<LoginRequest>,
-) -> Result<Json<LoginResponse>, Json<String>> {
+) -> Result<ApiResponse<LoginResponse>, ApiResponse<()>> {
     match container.auth_service.login_user(&req).await {
-        Ok(token) => Ok(Json(token)),
-        Err(err) => Err(Json((err.unwrap()).to_string())),
-    }
-}
-
-pub async fn register(
-    State(container): State<Arc<Container>>,
-    Json(mut req): Json<UserRequest>,
-) -> Result<Json<String>, ApiResponse<()>> {
-    match container.auth_service.register_user(&mut req).await {
-        Ok(_) => Ok(Json("User registered successfully".to_string())),
+        Ok(token) => Ok(ApiResponse::new(token)),
         Err(err) => Err(err),
     }
 }
 
-pub fn auth_routes(container: Arc<Container>) -> Router {
+
+pub async fn register(
+    State(container): State<Arc<Container>>,
+    Json(mut req): Json<UserRequest>,
+) -> Result<ApiResponse<String>, ApiResponse<()>> {
+    match container.auth_service.register_user(&mut req).await {
+        Ok(_) => Ok(ApiResponse::new("User registered successfully".to_string())),
+        Err(err) => Err(err),
+    }
+}
+
+pub async fn health_check(
+    State(container): State<Arc<Container>>,
+    Json(req): Json<String>,
+) -> Result<ApiResponse<String>, ApiResponse<()>> {
+    container.auth_service.health_check(&req).await
+}
+
+
+pub fn auth_routes() -> Router<Arc<Container>> {
     Router::new()
         .route("/login", post(login))
         .route("/register", post(register))
-        .with_state(container)
+        .route("/health_check", post(health_check))
 }

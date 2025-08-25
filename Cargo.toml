@@ -23,4 +23,6 @@ jsonwebtoken = "9.3.1"
 serde_json = "1.0.140"
 rust-argon2 = "3.0"
 
-
+[dev-dependencies]
+anyhow = "1.0.72"
+httpc-test = "0.1.1"

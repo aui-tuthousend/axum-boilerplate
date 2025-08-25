@@ -7,8 +7,9 @@ use validator::Validate;
 
 #[async_trait]
 pub trait AuthServiceTrait: Send + Sync {
-    async fn login_user(&self, req : &LoginRequest) -> Result<LoginResponse, Option<String>>;
+    async fn login_user(&self, req : &LoginRequest) -> Result<LoginResponse, ApiResponse<()>>;
     async fn register_user(&self, req: &mut UserRequest) -> Result<(), ApiResponse<()>>;
+    async fn health_check(&self, req: &String) -> Result<ApiResponse<String>, ApiResponse<()>>;
 }
 
 pub struct AuthService {
@@ -25,35 +26,51 @@ impl AuthService {
 
 #[async_trait]
 impl AuthServiceTrait for AuthService {
-    async fn login_user(&self, req: &LoginRequest) -> Result<LoginResponse, Option<String>> {
+    async fn login_user(&self, req: &LoginRequest) -> Result<LoginResponse, ApiResponse<()>> {
         req.validate().map_err(|e| {
-            Some(e.to_string())
-        })?;
-    
-        let user = self.repository.login(req).await.map_err(|e| {
-            Some(e.to_string())
-        })?;
-
-        let user_verify = user.unwrap();
-
-        let verify = verify_password(&req.password, &user_verify.password);
-        if !verify.unwrap() {
-            return Err(Some("Invalid password".to_string()));
-        }
-
-        let token = encode_jwt(user_verify.id, user_verify.role);
-    
-        Ok(LoginResponse { token })
-    }
-    
-    
-    async fn register_user(&self, req: &mut UserRequest) -> Result<(), ApiResponse<()>> {
-        req.validate().map_err(|e| {
-            ApiResponse::<()>::error(
+            ApiResponse::error(
                 StatusCode::UNPROCESSABLE_ENTITY.as_u16(),
                 Some(e.to_string()),
             )
         })?;
+    
+        let user = self.repository.login(req).await.map_err(|e| {
+            ApiResponse::error(
+                StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                Some(e.to_string()),
+            )
+        })?;
+    
+        let user_verify = user.unwrap();
+    
+        let verify = verify_password(&req.password, &user_verify.password);
+        if !verify.unwrap() {
+            return Err(ApiResponse::error(
+                StatusCode::UNAUTHORIZED.as_u16(),
+                Some("Invalid password".to_string()),
+            ));
+        }
+    
+        let token = encode_jwt(user_verify.id, user_verify.role);
+        Ok(LoginResponse { token })
+    }
+    
+    
+    
+    async fn register_user(&self, req: &mut UserRequest) -> Result<(), ApiResponse<()>> {
+        req.validate().map_err(|e| {
+            ApiResponse::error(
+                StatusCode::UNPROCESSABLE_ENTITY.as_u16(),
+                Some(e.to_string()),
+            )
+        })?;
+
+        if req.password.len() < 8 {
+            return Err(ApiResponse::error(
+                StatusCode::UNPROCESSABLE_ENTITY.as_u16(),
+                Some("Password must be at least 8 characters long".to_string()),
+            ));
+        }
 
         let hash_password = hash_password(&req.password);
 
@@ -65,12 +82,16 @@ impl AuthServiceTrait for AuthService {
         };
 
         self.user_repository.create_user(&user).await.map_err(|e| {
-            ApiResponse::<()>::error(
+            ApiResponse::error(
                 StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
                 Some(e.to_string()),
             )
         })?;
 
         Ok(())
+    }
+
+    async fn health_check(&self, req: &String) -> Result<ApiResponse<String>, ApiResponse<()>> {
+        Ok(ApiResponse::new(req.clone()))
     }
 }
