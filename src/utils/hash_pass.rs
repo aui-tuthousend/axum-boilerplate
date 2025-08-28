@@ -10,7 +10,6 @@ pub fn hash_password(password: &str) -> Result<String, Box<dyn std::error::Error
 
 pub fn verify_password(password: &str, password_hash: &str) -> Result<bool, Box<dyn std::error::Error>> {
     let matches = verify_encoded(&password_hash, password.as_bytes()).unwrap();
-    assert!(matches);
 
     Ok(matches)
 }

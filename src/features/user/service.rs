@@ -25,7 +25,7 @@ impl UserServiceTrait for UserService {
     async fn get_all_user(&self) -> Result<Vec<UserResponse>, ApiResponse<()>> {
         let user = self.repository.get_all_user().await.map_err(|e| {
             ApiResponse::<()>::error(
-                StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+                StatusCode::INTERNAL_SERVER_ERROR,
                 Some(e.to_string()),
             )
         })?;

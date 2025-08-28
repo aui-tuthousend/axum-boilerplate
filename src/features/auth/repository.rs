@@ -26,7 +26,7 @@ impl AuthRepository for DbAuthRepository{
                 role,
                 is_active
                 FROM users
-                WHERE username = $1 and deleted_at is null LIMIT 1"#, req.username)
+                WHERE username = $1 or email = $1 and deleted_at is null LIMIT 1"#, req.username)
             .fetch_optional(&self.pool)
             .await?;
         Ok(result)

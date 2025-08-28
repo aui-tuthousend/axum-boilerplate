@@ -13,17 +13,17 @@ pub struct ApiResponse<T> {
 }
 
 impl<T: Serialize> ApiResponse<T> {
-    pub fn new(data: T) -> Self {
+    pub fn new(code: StatusCode, data: T) -> Self {
         Self {
-            code: 200,
+            code: code.as_u16(),
             message: Some("Success".to_string()),
             data: Some(data),
         }
     }
 
-    pub fn error(code: u16, message: Option<String>) -> Self {
+    pub fn error(code: StatusCode, message: Option<String>) -> Self {
         Self {
-            code,
+            code: code.as_u16(),
             message,
             data: None,
         }

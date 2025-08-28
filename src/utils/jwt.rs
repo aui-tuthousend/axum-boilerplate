@@ -12,6 +12,7 @@ pub struct Claims {
     pub role: String,
     pub exp: usize,
 }
+
 pub fn encode_jwt(user_id: i64, role: String) -> String {
     let now = Utc::now();
     let expire: chrono::TimeDelta = Duration::hours(24);
@@ -25,7 +26,7 @@ pub fn encode_jwt(user_id: i64, role: String) -> String {
 }
 
 pub fn decode_jwt(jwt_token: String) -> Result<TokenData<Claims>, StatusCode> {
-    let secret = "randomStringTypicallyFromEnv".to_string();
+    let secret = env::var("JWT_SECRET_KEY").unwrap();
     let result: Result<TokenData<Claims>, StatusCode> = decode(
         &jwt_token,
         &DecodingKey::from_secret(secret.as_ref()),

@@ -8,7 +8,8 @@ axum = "0.8.4"
 tokio = { version = "1.46.1", features = ["full"] }
 async-trait = "0.1.88"
 chrono = { version = "0.4.41", features = ["serde"] }
-tower = "0.4"
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.1", features = ["full"] }
 hyper = "0.14"
 serde = { version = "1.0.219", features = ["derive"] }
 utoipa = { version = "5.3.1", features = ["actix_extras"] }
